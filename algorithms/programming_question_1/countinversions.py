@@ -55,8 +55,7 @@ def count_inv(list):
 #for test
 #str = "1 10 4 3 2 11"
 #str = "1 3 5 2 4 6"
-
-lst = str.split()
+#lst = str.split()
 
 filestring = open('IntegerArray.txt', 'r').read()
 lst = filestring.split()

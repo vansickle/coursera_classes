@@ -49,7 +49,7 @@ output = [210205973L, 22795300L, 58776750L, 121262470L, 264731963L, 140842553L, 
 # prng.y = y
 # print prng.next()
 
-test_p = 10000000L
+test_p = 100000
 prng = WeakPrng(test_p)
 start_x = prng.x
 start_y = prng.y
@@ -78,6 +78,12 @@ class Result(object):
 		self.x = x
 		self.y = y
 		self.next = next
+	
+	def __str__(self):
+		return "Result [x = {0}, y = {1}, next = {2}]".format(self.x, self.y, self.next)
+	
+	def __repr__(self):
+		return __str__(self)
 
 def break_prng(known_, p):
 	prng = WeakPrng(p)
@@ -103,12 +109,55 @@ def break_prng(known_, p):
 				return res
 	return Result(0,0,0)
 
+
+global_count = 0
+
+from threading import Thread
+import threading
+
+def multithreaded_break_prng_backwards(known_, p):
+	count = 4
+	for i in range(count):
+	    t = Thread(target=break_prng_backwards_internal, args=(known_, p, p/count*i, p/count*(i+1)))
+	    t.start()
+	    logw("thread {0} started".format(i))
+
+	for thread in threading.enumerate():
+		if thread is not threading.currentThread():
+			thread.join()
+
+
+from multiprocessing import Process
+
+def multiprocessing_break_prng_backwards(known_, p):
+	count = 4
+
+	proc_list = []
+
+	for i in range(count):
+		start = p/count*i
+		end = p/count*(i+1)
+		p = Process(target=break_prng_backwards_internal, args=(known_, p, start, end))
+		proc_list.append(p)
+		p.start()
+		logw("Process {0} started".format(i))
+
+	for proc in proc_list:
+		proc.join()
+
 def break_prng_backwards(known_, p):
-	for last_x in xrange(0, p):
-		
-		if last_x % 100000 == 0:
-			logw("x = {0}".format(last_x))
-			
+	return break_prng_backwards_internal(known_, p, 0, p)
+
+def break_prng_backwards_internal(known_, p, start_p, end_p):
+	logw("start_p = {0}, end_p = {1}".format(start_p,end_p))
+
+	global global_count
+	for last_x in xrange(start_p, end_p):
+
+		if (last_x + 1 - start_p) % 10000 == 0:
+		 	global_count += 10000
+		 	logw("global count = {0}".format(global_count))
+
 		x = last_x
 		check = True
 		log("x = {0}".format(x))
@@ -166,22 +215,28 @@ def break_prng_backwards(known_, p):
 			prng = WeakPrng(p)
 			prng.x = last_x
 			prng.y = known_[-1]^last_x
-			return Result(prng.x, prng.y, prng.next())
+			result = Result(prng.x, prng.y, prng.next())
+			logw("found solution! = {0}".format(result))
+			return result
+			# import sys
+			# sys.exit("Found")
 	return Result(0,0,0)
 	
 from time import time
 
 print "======== backward break ========="
 start = time()
-# result = break_prng_backwards(known_, test_p)
-result = break_prng_backwards(output, P)
+result = break_prng_backwards(known_, test_p)
+# result = multithreaded_break_prng_backwards(known_, test_p)
+# result = multiprocessing_break_prng_backwards(known_, test_p)
+# result = multithreaded_break_prng_backwards(output, P)
 elapsed = (time() - start)
-print "result x = {0} y = {1} next = {2}".format(result.x, result.y, result.next)
 print "elapsed : {0}".format(elapsed)
+print "result x = {0} y = {1} next = {2}".format(result.x, result.y, result.next)
 
 #assert result.x == 10
 #assert result.y == 1
-# assert result.next == lst_[-1]
+assert result.next == lst_[-1]
 
 # 
 # print "========= brute force break =========="

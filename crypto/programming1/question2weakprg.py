@@ -36,19 +36,20 @@ class WeakPrng(object):
 # 
 # print list
 
-#output = [210205973, 22795300, 58776750, 121262470, 264731963, 140842553, 242590528, 195244728, 86752752]
+output = [210205973L, 22795300L, 58776750L, 121262470L, 264731963L, 140842553L, 242590528L, 
+195244728L, 86752752L]
 
-x = 92134638
-y = 2664024
-output = [176311022L, 84750146L, 210265938L, 492796695L, 
-303683767L, 460399902L, 471367820L, 340585377L, 52435122L]
+#x = 92134638
+#y = 2664024
+#output = [176311022L, 84750146L, 210265938L, 492796695L, 
+#303683767L, 460399902L, 471367820L, 340585377L, 52435122L]
 
 # prng = WeakPrng(P)
 # prng.x = x
 # prng.y = y
 # print prng.next()
 
-test_p = 10000
+test_p = 10000000L
 prng = WeakPrng(test_p)
 start_x = prng.x
 start_y = prng.y
@@ -103,7 +104,11 @@ def break_prng(known_, p):
 	return Result(0,0,0)
 
 def break_prng_backwards(known_, p):
-	for last_x in range(0, p):
+	for last_x in xrange(0, p):
+		
+		if last_x % 100000 == 0:
+			logw("x = {0}".format(last_x))
+			
 		x = last_x
 		check = True
 		log("x = {0}".format(x))
@@ -168,23 +173,24 @@ from time import time
 
 print "======== backward break ========="
 start = time()
-result = break_prng_backwards(known_, test_p)
+# result = break_prng_backwards(known_, test_p)
+result = break_prng_backwards(output, P)
 elapsed = (time() - start)
 print "result x = {0} y = {1} next = {2}".format(result.x, result.y, result.next)
 print "elapsed : {0}".format(elapsed)
 
 #assert result.x == 10
 #assert result.y == 1
-assert result.next == lst_[-1]
+# assert result.next == lst_[-1]
 
-
-print "========= brute force break =========="
-start = time()
-result = break_prng(known_, test_p)
-elapsed = (time() - start)
-print "result x = {0} y = {1} next = {2}".format(result.x, result.y, result.next)
-print "elapsed : {0}".format(elapsed)
-
-#assert result.x == 10
-#assert result.y == 1
-assert result.next == lst_[-1]
+# 
+# print "========= brute force break =========="
+# start = time()
+# result = break_prng(known_, test_p)
+# elapsed = (time() - start)
+# print "result x = {0} y = {1} next = {2}".format(result.x, result.y, result.next)
+# print "elapsed : {0}".format(elapsed)
+# 
+# #assert result.x == 10
+# #assert result.y == 1
+# assert result.next == lst_[-1]

@@ -70,7 +70,8 @@ def compute_scc(list_):
 		if not vertex.is_explored():
 			drill_down(vertex)
 		
-		
+	log(list_)
+	map(lambda edge: edge.rotate(), )
 		
 
 class Vertex(object):
@@ -98,7 +99,6 @@ class Vertex(object):
 
 	def __repr__(self):
 		return self.__str__();
-	
 
 class Edge(object):
 	def __init__(self, tail, head):
@@ -110,8 +110,9 @@ class Edge(object):
 		return "{0} => {1}".format(self.tail, self.head)
 
 	def __repr__(self):
-		return self.__str__();
-
+		return self.__str__()
+	
+	def rotate
 
 str_ = open('TestData/scc_graph_1.txt', 'r').read()
 # str_ = open('SCC.txt', 'r').read()

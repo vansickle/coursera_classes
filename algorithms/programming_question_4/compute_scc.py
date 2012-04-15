@@ -11,6 +11,9 @@ vertices = dict()
 #cause dict.items() not ordered
 vertices_list = list()
 
+vertices_dict_by_finish_times = dict()
+vertices_list_by_finish_times = list()
+
 finish_time = 0
 
 def drill_down(vertex):
@@ -36,6 +39,8 @@ def drill_down(vertex):
 	global finish_time
 	finish_time += 1
 	vertex.finish_time = finish_time
+	vertices_list_by_finish_times.insert(0, vertex)
+	vertices_dict_by_finish_times[vertex.finish_time] = vertex
 	log("vertex ", vertex, "finish time:", finish_time)
 
 def compute_scc(list_):
@@ -62,7 +67,7 @@ def compute_scc(list_):
 	for vertex in vertices_list:
 		log()
 		log("top level vertex", vertex)
-		if not vertex.is_finished():
+		if not vertex.is_explored():
 			drill_down(vertex)
 		
 		
@@ -116,4 +121,5 @@ list_ = [Edge(node_list[0],node_list[1]) for node_list in [line.split() for line
 
 compute_scc(list_)
 
+log(vertices_list_by_finish_times)
 # log(list_)

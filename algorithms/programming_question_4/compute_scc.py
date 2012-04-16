@@ -3,7 +3,7 @@ import threading
 
 #or rewrite from recursion to cycle
 sys.setrecursionlimit(100000)
-threading.stack_size(67108864*2)
+threading.stack_size(67108864)
 
 enable_log = False
 
@@ -200,11 +200,32 @@ class Edge(object):
 # vert_number = 7
 # max_scc_count = 1
 
+# enable_log = True
+# filename = 'TestData/scc_graph_2.txt'
+# vert_number = 10
+# max_scc_count = 2
+
+# enable_log = True
+# filename = 'TestData/scc_graph_3.txt'
+# vert_number = 15
+# max_scc_count = 4
+
+# enable_log = True
+# filename = 'TestData/scc_graph_4.txt'
+# vert_number = 5
+# max_scc_count = 4
+
+enable_log = True
+filename = 'TestData/scc_graph_5.txt'
+vert_number = 9
+max_scc_count = 3
+
 logw("starts")
 
-filename = 'SCC.txt'
-vert_number = 875714
-max_scc_count = 5
+# filename = 'SCC.txt'
+# vert_number = 875714
+# max_scc_count = 5
+
 
 count = 0
 list_ = []
@@ -218,7 +239,7 @@ with open(filename, 'r') as f:
 			logw("edges loaded from file:", count)
 
 compute_scc(list_)
-logw(max_scc)
+logw(list(reversed(max_scc)))
 
 # log(vertices)
 # log(list_)

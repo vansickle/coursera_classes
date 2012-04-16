@@ -1,9 +1,6 @@
-import sys
-import threading
+#NB! Algorithm works, but very ineffective in terms of memory (and speed too) - have no time to improve
 
-#or rewrite from recursion to cycle
-sys.setrecursionlimit(100000)
-threading.stack_size(67108864)
+import sys, thread, threading, time
 
 enable_log = False
 
@@ -215,31 +212,40 @@ class Edge(object):
 # vert_number = 5
 # max_scc_count = 4
 
-enable_log = True
-filename = 'TestData/scc_graph_5.txt'
-vert_number = 9
-max_scc_count = 3
+# enable_log = True
+# filename = 'TestData/scc_graph_5.txt'
+# vert_number = 9
+# max_scc_count = 3
 
 logw("starts")
 
-# filename = 'SCC.txt'
-# vert_number = 875714
-# max_scc_count = 5
+filename = 'SCC.txt'
+vert_number = 875714
+max_scc_count = 5
 
+def all():
 
-count = 0
-list_ = []
-with open(filename, 'r') as f:
-	for line in f:
-		node_list = line.split()
-		edge = Edge(int(node_list[0]),int(node_list[1]))
-		list_.append(edge)
-		count += 1
-		if count % 50000 == 0:
-			logw("edges loaded from file:", count)
+	count = 0
+	list_ = []
+	with open(filename, 'r') as f:
+		for line in f:
+			node_list = line.split()
+			edge = Edge(int(node_list[0]),int(node_list[1]))
+			list_.append(edge)
+			count += 1
+			if count % 50000 == 0:
+				logw("edges loaded from file:", count)
 
-compute_scc(list_)
-logw(list(reversed(max_scc)))
+	compute_scc(list_)
+	logw(list(reversed(max_scc)))
 
-# log(vertices)
-# log(list_)
+# need to overcome recursion depth limits in python
+# other way - rewrite recursion to loop using own stack
+sys.setrecursionlimit(100000)   
+thread.stack_size(2**27)      #just big size
+thread = threading.Thread( target = all )
+
+start_time = time.clock()
+thread.start()      
+thread.join()
+print time.clock() - start_time

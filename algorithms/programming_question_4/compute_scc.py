@@ -1,27 +1,54 @@
-def logw(str_):
-	print str_
+import sys
+import threading
+
+#or rewrite from recursion to cycle
+sys.setrecursionlimit(100000)
+threading.stack_size(67108864*2)
+
+enable_log = False
+
+def logw(*args):
+	print " ".join([str(a) for a in args])
 	
 def log(*args):
-	print " ".join([str(a) for a in args])
-	pass
+	if enable_log:
+		print " ".join([str(a) for a in args])
 
+vert_number = 0
+#can change to list
 vertices = dict()
-	
-#need to have ordered list of vertices
-#cause dict.items() not ordered
-vertices_list = list()
 
 vertices_dict_by_finish_times = dict()
-vertices_list_by_finish_times = list()
-
 finish_time = 0
+
+leader = None
+scc_vertices_number = 0
+scc = []
+
+max_scc = []
+max_scc_count = 5
+
+def stage2(vertex):
+	global scc_vertices_number
+	scc_vertices_number += 1
+	scc.append(vertex)
+	vertex.mark_as_explored()
+
+	for edge in vertex.edges:
+		next_vertex = vertices[edge.head]
+		log("next vertex", next_vertex)
+		if next_vertex.is_explored():
+			log("next vertex ", next_vertex, " is explored")
+			continue
+		
+		stage2(next_vertex)
+		
+
 
 def drill_down(vertex):
 	log("starts with:", vertex)
 	
 	vertex.mark_as_explored()
-	
-	all_explored = True
 	
 	for edge in vertex.edges:
 		log("edge:", edge)
@@ -32,30 +59,34 @@ def drill_down(vertex):
 			log("next vertex ", next_vertex, " is explored")
 			continue
 		
-		all_explored = False
 		drill_down(next_vertex)
 		
 	# if all_explored:
 	global finish_time
 	finish_time += 1
 	vertex.finish_time = finish_time
-	vertices_list_by_finish_times.insert(0, vertex)
 	vertices_dict_by_finish_times[vertex.finish_time] = vertex
 	log("vertex ", vertex, "finish time:", finish_time)
 
 def compute_scc(list_):
 	
 	logw("starts computing")
-	list_ = reversed(list_)
+	reversed_list = reversed(list_)
 	logw("reversed")
-	for edge in list_:
+	for edge in reversed_list:
 		if edge.tail not in vertices:
 			vertex = Vertex(edge.tail)
 			vertices[edge.tail] = vertex
-			vertices_list.append(vertex)
 		
 		vertex = vertices[edge.tail]
 		vertex.add_edge(edge)
+		
+		if edge.head not in vertices:
+			head_vertex = Vertex(edge.head)
+			vertices[edge.head] = head_vertex
+		
+		head_vertex = vertices[edge.head]
+		head_vertex.add_inc_edge(edge)
 		
 		# log("edge: ", edge)
 		#for adjvi in adjlist[1:]:
@@ -64,27 +95,70 @@ def compute_scc(list_):
 	log("vertices:", vertices)
 	log("vertices list:", vertices)
 	
-	for vertex in vertices_list:
-		log()
-		log("top level vertex", vertex)
+	for i in xrange(vert_number,0,-1):
+		if i%10000==0:
+			logw("stage 1 on:", i)
+		vertex = vertices[i]
+		log("\ntop level vertex", vertex)
 		if not vertex.is_explored():
 			drill_down(vertex)
+
+	# log("\nreverse list")	
+	# list_ = map(lambda edge: edge.reverse(), list_)
+	# log(list_)
+	
+	for i in xrange(vert_number, 0, -1):
+		vertex = vertices[i]
+		vertex.reverse()
+			
+	logw("stage 2")
+	for i in xrange(vert_number, 0, -1):
+		vertex = vertices_dict_by_finish_times[i]
+		log("\nvertex", vertex)
 		
-	log(list_)
-	map(lambda edge: edge.rotate(), )
-		
+		if i%10000 == 0:
+			logw("stage 2 on:", i)
+
+		if not vertex.is_explored():
+			global scc
+			scc = []
+			global scc_vertices_number
+			scc_vertices_number = 0
+			leader = vertex
+			stage2(vertex)
+			log("Found SCC:", scc, "Vertices number:", scc_vertices_number)
+			
+			global max_scc
+			global max_scc_count
+
+			max_scc.append(scc_vertices_number)
+			max_scc = sorted(max_scc)
+
+			log("max scc:", max_scc)
+			max_scc = max_scc[-max_scc_count:]
+
+			# if len(max_scc)<max_scc_count:
+			# 	max_scc.append(scc_vertices_number)
+			# 	max_scc = sorted[max_scc]
+			# else
+			# 	max_scc.append
+				
 
 class Vertex(object):
 	def __init__(self, number):
 		super(Vertex, self).__init__()
 		self.number = number
 		self.edges = []
+		self.inc_edges = []
 		self.explored = False
 		self.finish_time = 0
 		
 	def add_edge(self, edge):
 		self.edges.append(edge)
-		
+	
+	def add_inc_edge(self, edge):
+		self.inc_edges.append(edge)
+	
 	def mark_as_explored(self):
 		self.explored = True
 	
@@ -93,6 +167,11 @@ class Vertex(object):
 		
 	def is_finished(self):
 		return self.finish_time>0
+	
+	def reverse(self):
+		map(lambda edge: edge.reverse(), self.edges)
+		self.explored = False
+		self.edges, self.inc_edges = self.inc_edges, self.edges
 		
 	def __str__(self):
 		return "{0} : {1}".format(self.number, self.edges)
@@ -110,17 +189,36 @@ class Edge(object):
 		return "{0} => {1}".format(self.tail, self.head)
 
 	def __repr__(self):
-		return self.__str__()
-	
-	def rotate
+		return self.__str__();
 
-str_ = open('TestData/scc_graph_1.txt', 'r').read()
-# str_ = open('SCC.txt', 'r').read()
-list_ = str_.split('\n')
+	def reverse(self):
+		self.tail, self.head = self.head, self.tail
+		return self
 
-list_ = [Edge(node_list[0],node_list[1]) for node_list in [line.split() for line in list_]]
+# enable_log = True
+# filename = 'TestData/scc_graph_1.txt'
+# vert_number = 7
+# max_scc_count = 1
+
+logw("starts")
+
+filename = 'SCC.txt'
+vert_number = 875714
+max_scc_count = 5
+
+count = 0
+list_ = []
+with open(filename, 'r') as f:
+	for line in f:
+		node_list = line.split()
+		edge = Edge(int(node_list[0]),int(node_list[1]))
+		list_.append(edge)
+		count += 1
+		if count % 50000 == 0:
+			logw("edges loaded from file:", count)
 
 compute_scc(list_)
+logw(max_scc)
 
-log(vertices_list_by_finish_times)
+# log(vertices)
 # log(list_)
